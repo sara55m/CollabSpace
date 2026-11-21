@@ -7,6 +7,9 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Enums\AvailabilityStatus;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -19,9 +22,8 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'name', 'email', 'password', 'phone',
+        'job_title', 'years_of_experience', 'bio', 'availability_status',
     ];
 
     /**
@@ -44,6 +46,24 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'availability_status' => AvailabilityStatus::class,
         ];
+    }
+
+    public function tasks(): BelongsToMany
+    {
+        return $this->belongsToMany(Task::class)->withTimestamps();
+    }
+
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class)
+            ->using(TeamUser::class)
+            ->withPivot('role','position')
+            ->withTimestamps();
+    }
+
+    public function attachments(): HasMany{
+        return $this->hasMany(Attachment::class,'uploaded_by');
     }
 }
