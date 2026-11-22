@@ -15,11 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->string('type')->nullable();               
+            $table->string('type')->nullable();
             $table->string('status')->default('active');
             $table->string('priority')->default('medium');
             $table->date('start_date')->nullable();
             $table->date('deadline')->nullable();
+            $table->foreignId('owner_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

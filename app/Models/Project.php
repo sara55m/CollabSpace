@@ -5,13 +5,15 @@ namespace App\Models;
 use App\Enums\ProjectPriority;
 use App\Enums\ProjectStatus;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Mail\Attachment;
+use App\Models\Attachment;
 use Illuminate\Support\Facades\Storage;
 
 class Project extends Model
 {
-    protected $fillable=['name','type','description','start_date','deadline','status','priority'];
+    protected $fillable=['name','type','description','start_date','deadline','status','priority','owner_id'];
 
     protected function casts()
     {
@@ -21,6 +23,16 @@ class Project extends Model
             'status'=>ProjectStatus::class,
             'priority'=>ProjectPriority::class,
         ];
+    }
+
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class,'owner_id');
+    }
+
+    public function members(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)->withTimestamps();
     }
 
     public function teams(): HasMany

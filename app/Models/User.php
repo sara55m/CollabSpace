@@ -63,6 +63,15 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function ownedProjects(): HasMany{
+        return $this->hasMany(Project::class,'owner_id');
+    }
+
+    public function projects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class)->withTimestamps();
+    }
+
     public function attachments(): HasMany{
         return $this->hasMany(Attachment::class,'uploaded_by');
     }
