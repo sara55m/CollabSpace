@@ -38,8 +38,15 @@ class Project extends Model
         return $this->hasMany(Task::class);
     }
 
+    public function meetings(): HasMany
+    {
+        return $this->hasMany(Meeting::class);
+    }
+
     protected static function booted(): void
     {
         static::deleting(fn (Project $p) => Storage::deleteDirectory("projects/{$p->id}"));
     }
+
+
 }

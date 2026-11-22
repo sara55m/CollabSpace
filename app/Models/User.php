@@ -66,4 +66,14 @@ class User extends Authenticatable
     public function attachments(): HasMany{
         return $this->hasMany(Attachment::class,'uploaded_by');
     }
+
+    public function meetings(): BelongsToMany
+    {
+        return $this->belongsToMany(Meeting::class)->withTimestamps();
+    }
+
+    public function organizedMeetings(): HasMany
+    {
+        return $this->hasMany(Meeting::class,'organizer_id');
+    }
 }
