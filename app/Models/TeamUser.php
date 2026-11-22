@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class TeamUser extends Pivot
 {
+
+    protected $table = 'team_user';
+    
     protected $fillable=['team_id','user_id','role','position'];
 
     protected function casts()

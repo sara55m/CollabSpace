@@ -76,4 +76,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Meeting::class,'organizer_id');
     }
+
+    public function conversations(): BelongsToMany
+    {
+        return $this->belongsToMany(Conversation::class)
+            ->using(ConversationUser::class)
+            ->withPivot('last_read_at')
+            ->withTimestamps();
+    }
 }
