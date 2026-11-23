@@ -27,7 +27,7 @@ class ProjectController extends Controller
     public function store(StoreRequest $request)
     {
         $validated = $request->validated();
-        $userId = $request->user()?->id ?? 1;
+        $userId = $request->user()?->id;
         $storedPaths = [];
 
         try {
