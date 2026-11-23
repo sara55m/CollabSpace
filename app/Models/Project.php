@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Attachment;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Builder;
 
 class Project extends Model
 {
@@ -65,5 +66,23 @@ class Project extends Model
         static::deleting(fn (Project $p) => Storage::deleteDirectory("projects/{$p->id}"));
     }
 
+    public function scopeVisibleTo(Builder $query,User $user)
+    {
+        return $query->whereHas('members',function(Builder $q) use($user){
+            $q->whereKey($user->id);
+        });
+    }
+
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+        ->when($filters['name'] ?? null,fn($q,$v)=>$q->where('name','like',"%{$v}%"))
+        ->when($filters['status'] ?? null,fn($q,$v)=>$q->where('status',$v))
+        ->when($filters['priority'] ?? null,fn($q,$v)=>$q->where('priority',$v))
+        ->when($filters['start_date_from'] ?? null,fn($q,$v)=>$q->whereDate('start_date','>=',$v))
+        ->when($filters['start_date_to'] ?? null,fn($q,$v)=>$q->whereDate('start_date','<=',$v))
+        ->when($filters['deadline_from'] ?? null,fn($q,$v)=>$q->whereDate('deadline','>=',$v))
+        ->when($filters['deadline_to'] ?? null,fn($q,$v)=>$q->whereDate('deadline','<=',$v));
+    }
 
 }
