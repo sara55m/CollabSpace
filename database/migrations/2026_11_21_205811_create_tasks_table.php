@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('priority')->default('medium');      // low | medium | high
             $table->unsignedTinyInteger('progress')->nullable(); // 0-100
             $table->unsignedInteger('sort_order')->default(0);
+            $table->date('start_date')->nullable();
             $table->date('due_date')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();

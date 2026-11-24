@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -20,23 +21,17 @@ Route::prefix('auth')->group(function(){
 });
 
 Route::middleware('auth:sanctum')->group(function(){
-    Route::get('projects/',[ProjectController::class,'index']);
-    Route::post('projects/',[ProjectController::class,'store']);
-    Route::get('/projects/{project}',[ProjectController::class,'show']);
-    Route::patch('projects/{project}', [ProjectController::class, 'update']);
-    Route::delete('projects/{project}', [ProjectController::class, 'destroy']);
+        //projects
+        Route::apiResource('projects', ProjectController::class);
 
-    //teams in a project
-    Route::get('projects/{project}/teams',[TeamController::class,'index']);
+        //teams scoped in a project
+        Route::apiResource('projects.teams', TeamController::class)->scoped();
 
-    Route::post('projects/{project}/teams',[TeamController::class,'store']);
+        //tasks in a project
+        Route::post('projects/{project}/tasks',[TaskController::class,'store']);
 
-    Route::get('projects/{project}/teams/{team}', [TeamController::class, 'show'])
-        ->scopeBindings();
+        Route::get('projects/{project}/tasks/{task}',[TaskController::class,'show'])->scopeBindings();
 
-    Route::patch('projects/{project}/teams/{team}', [TeamController::class, 'update']);
-
-    Route::delete('projects/{project}/teams/{team}', [TeamController::class, 'destroy']);
 });
 
 

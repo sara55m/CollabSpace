@@ -82,8 +82,10 @@ class ProjectController extends Controller
                     'members:id,name',
                     'teams' => fn ($q) => $q->withCount('members'),
                     'teams.members:id,name',
+                    'tasks' => fn ($q) => $q->withCount('assignees'),
+                    'tasks.assignees:id,name',
                     'attachments',
-                ])->loadCount(['attachments','teams']);
+                ])->loadCount(['attachments','teams','tasks']);
             });
         } catch (\Throwable $e) {
             // A database rollback does not remove files from storage.
@@ -106,7 +108,7 @@ class ProjectController extends Controller
     {
         Gate::authorize('view',$project);
 
-        $project->load(['tasks','teams.members','attachments','members'])->loadCount(['attachments','teams']);
+        $project->load(['tasks.assignees','teams.members','attachments','members'])->loadCount(['attachments','teams','tasks']);
 
         return response()->json([
             'message'=>__("messages.project_returned"),

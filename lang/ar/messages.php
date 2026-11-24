@@ -19,4 +19,8 @@ return [
 
     'team_updated' => 'تم تحديث الفريق بنجاح',
     'team_deleted' => 'تم حذف الفريق بنجاح',
+
+    //tasks
+    'task_created'  => 'تم إنشاء المهمة بنجاح',
+    'task_returned' => 'تمت إعادة المهمة للمراجعة',
 ];

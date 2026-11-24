@@ -19,4 +19,8 @@ return [
 
     'team_updated' => 'Team updated successfully.',
     'team_deleted' => 'Team deleted successfully.',
+
+    //tasks
+    'task_created'  => 'Task created successfully',
+    'task_returned' => 'Task returned for revision',
 ];

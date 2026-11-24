@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Number;
 
 class Attachment extends Model
@@ -17,9 +18,9 @@ class Attachment extends Model
         return ['size' => 'integer'];
     }
 
-    public function project(): BelongsTo
+    public function attachable(): MorphTo
     {
-        return $this->belongsTo(Project::class);
+        return $this->morphTo();  //project|task
     }
 
     public function uploader(): BelongsTo

@@ -6,6 +6,7 @@ use App\Enums\TeamRole;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Team extends Model
 {
@@ -27,5 +28,10 @@ class Team extends Model
     public function leader(): BelongsToMany
     {
         return $this->users()->wherePivot('role', TeamRole::Leader);
+    }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
     }
 }

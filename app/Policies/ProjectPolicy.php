@@ -38,6 +38,12 @@ class ProjectPolicy
         return $project->owner_id === $user->id;
     }
 
+    // only project members can add tasks
+    public function createTask(User $user, Project $project): bool
+    {
+        return $project->members()->whereKey($user->id)->exists();
+    }
+
     /**
      * Determine whether the user can update the model.
      */

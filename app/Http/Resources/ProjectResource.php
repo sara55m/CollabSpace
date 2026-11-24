@@ -37,9 +37,15 @@ class ProjectResource extends JsonResource
                 $this->whenLoaded('teams')
             ),
 
-            'attachments_count' =>$this->attachments_count,
+            'tasks' => TaskResource::collection(
+                $this->whenLoaded('tasks')
+            ),
 
-            'teams_count' =>$this->teams_count,
+            'attachments_count' =>$this->whenCounted('attachments_count'),
+
+            'teams_count' =>$this->whenCounted('teams_count'),
+
+            'tasks_count' =>$this->whenCounted('tasks_count'),
         ];
     }
 }

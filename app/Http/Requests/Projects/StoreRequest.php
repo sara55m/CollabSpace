@@ -34,7 +34,7 @@ class StoreRequest extends FormRequest
             'members'=>['required','array'],
             'members.*'=>['distinct','integer','exists:users,id'],
 
-            'attachments'    => ['sometimes', 'array', 'max:10'],
+            'attachments'    => ['nullable', 'array', 'max:10'],
             'attachments.*' => ['file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,png,jpg,jpeg'],
         ];
     }

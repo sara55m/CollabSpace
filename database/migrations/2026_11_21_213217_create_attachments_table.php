@@ -13,12 +13,13 @@ return new class extends Migration
     {
         Schema::create('attachments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('project_id')->constrained()->cascadeOnDelete();
+            $table->morphs('attachable');  //attachable_id | attachable_type
+            
             $table->foreignId('uploaded_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('name');
             $table->string('path');
             $table->string('mime_type')->nullable();
-            $table->unsignedBigInteger('size')->nullable();  
+            $table->unsignedBigInteger('size')->nullable();
             $table->timestamps();
         });
     }

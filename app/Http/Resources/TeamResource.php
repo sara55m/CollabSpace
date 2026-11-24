@@ -23,7 +23,7 @@ class TeamResource extends JsonResource
                 'position'=>$member->pivot->position,
             ])),
 
-            'members_count'=>$this->members_count,
+            'members_count'=>$this->whenCounted('members_count'),
         ];
     }
 }

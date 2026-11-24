@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Attachment;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Project extends Model
 {
@@ -41,9 +42,9 @@ class Project extends Model
         return $this->hasMany(Team::class);
     }
 
-    public function attachments(): HasMany
+    public function attachments(): MorphMany
     {
-        return $this->hasMany(Attachment::class);
+        return $this->morphMany(Attachment::class,'attachable');
     }
 
     public function tasks(): HasMany

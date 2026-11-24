@@ -7,10 +7,11 @@ use App\Enums\TaskStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Task extends Model
 {
-    protected $fillable = ['team_id','reviewer_id','title','description','status','priority','progress','sort_order','due_date'];
+    protected $fillable = ['team_id','reviewer_id','title','description','status','priority','progress','sort_order','due_date','start_date'];
 
     protected function casts(): array
     {
@@ -19,6 +20,7 @@ class Task extends Model
             'status'       =>TaskStatus::class,
             'progress'     => 'integer',
             'due_date'     =>'date',
+            'start_date'   =>'date',
             'completed_at' =>'datetime',
         ];
     }
@@ -41,5 +43,10 @@ class Task extends Model
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class,'reviewer_id');
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Attachment::class,'attachable');
     }
 }
