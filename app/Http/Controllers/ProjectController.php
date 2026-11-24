@@ -3,14 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Projects\IndexRequest;
-use Illuminate\Http\Request;
 use App\Http\Requests\Projects\StoreRequest;
+use App\Http\Requests\Projects\UpdateRequest;
 use App\Http\Resources\ProjectResource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Project;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Arr;
 
 
 class ProjectController extends Controller
@@ -76,18 +77,17 @@ class ProjectController extends Controller
                     ]);
                 }
 
-                return $project->refresh()->load([
+                return  $project->refresh()->load([
                     'owner:id,name',
                     'members:id,name',
+                    'teams' => fn ($q) => $q->withCount('members'),
                     'teams.members:id,name',
                     'attachments',
                 ])->loadCount(['attachments','teams']);
             });
         } catch (\Throwable $e) {
             // A database rollback does not remove files from storage.
-            foreach ($storedPaths as $path) {
-                Storage::delete($path);
-            }
+            Storage::delete($storedPaths);
 
             throw $e;
         }
@@ -118,16 +118,103 @@ class ProjectController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateRequest $request,Project $project): JsonResponse
     {
-        //
+        $validated = $request->validated();
+        $userId = $request->user()->id;
+        $storedPaths = [];
+        $pathsToDelete=[];
+
+        try {
+            DB::transaction(function () use ($validated,$project,$userId, &$storedPaths,&$pathsToDelete) {
+                $project->update(Arr::only($validated, [
+                    'name', 'type', 'description', 'status', 'priority', 'start_date', 'deadline',
+                ]));
+
+                if (array_key_exists('members', $validated)) {
+                    $memberIds=collect($validated['members'])->push($project->owner_id)->unique()->values();
+                    //member ids that are not in the request will be removed
+                    $removeIds=$project->members()->pluck('users.id')->diff($memberIds);   //[1,2,3]-[2,3,7]=[1]
+
+                    //remove the members form project teams too
+                    DB::table('team_user')
+                        ->whereIn('team_id',$project->teams()->pluck('id'))
+                        ->whereIn('user_id',$removeIds)
+                        ->delete();
+
+                    //sync project members
+                    $project->members()->sync($memberIds);
+                }
+
+                if(!empty($validated['remove_attachments'])){
+                    $toRemove = $project->attachments()->whereIn('id', $validated['remove_attachments'])->get();
+
+                    $pathsToDelete = $toRemove->pluck('path')->all();
+                    $project->attachments()->whereIn('id', $toRemove->pluck('id'))->delete();
+                }
+
+                foreach ($validated['attachments'] ?? [] as $file) {
+                    $path = $file->store("projects/{$project->id}/attachments");
+                    $storedPaths[] = $path;
+
+                    $project->attachments()->create([
+                        'uploaded_by' => $userId,
+                        'name'        => $file->getClientOriginalName(),
+                        'path'        => $path,
+                        'mime_type'   => $file->getMimeType(),
+                        'size'        => $file->getSize(),
+                    ]);
+                }
+            });
+        } catch (\Throwable $e) {
+            // A database rollback does not remove files from storage.
+            Storage::delete($storedPaths);
+
+            throw $e;
+        }
+
+        //delete the removed attachments form storage
+        Storage::delete($pathsToDelete);
+
+        $project->refresh()->load([
+            'owner:id,name',
+            'members:id,name',
+            'teams' => fn ($q) => $q->withCount('members'),
+            'teams.members:id,name',
+            'attachments',
+        ])->loadCount(['attachments','teams']);
+
+        return response()->json([
+            'message' => __("messages.project_updated"),
+            'data' => new ProjectResource($project),
+        ]);
+
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Project $project): JsonResponse
     {
-        //
+        Gate::authorize('delete',$project);
+
+        DB::transaction(function () use ($project){
+            //delete teams and detach their members
+            DB::table('team_user')->whereIn('team_id', $project->teams()->pluck('id'))->delete();
+            $project->teams()->delete();
+
+            //detach project members
+            $project->members()->detach();
+
+            //delete attachments
+            $project->attachments()->delete();
+
+            $project->delete();
+
+        });
+
+        return response()->json([
+            'message' => __('messages.project_deleted'),
+        ]);
     }
 }

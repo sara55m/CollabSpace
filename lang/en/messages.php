@@ -9,6 +9,8 @@ return [
     'project_created'=>'Project Created Successfully',
     'project_returned'=>'Project Returned Successfully',
     'projects_returned'=>'Projects Returned Successfully',
+    'project_updated' => 'Project updated successfully.',
+    'project_deleted' => 'Project deleted successfully.',
 
     //teams
     'team_created' => 'Team created successfully.',

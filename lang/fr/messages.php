@@ -9,6 +9,8 @@ return [
     'project_created' => 'Projet créé avec succès',
     'project_returned' => 'Projet récupéré avec succès',
     'projects_returned' => 'Projets récupérés avec succès',
+    'project_updated' => 'Projet mis à jour avec succès',
+    'project_deleted' => 'Projet supprimé avec succès',
 
     //teams
     'team_created' => 'Équipe créée avec succès',

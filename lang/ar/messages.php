@@ -9,6 +9,8 @@ return [
     'project_created' => 'تم إنشاء المشروع بنجاح',
     'project_returned' => 'تم جلب المشروع بنجاح',
     'projects_returned' => 'تم جلب المشروعات بنجاح',
+    'project_updated' => 'تم تحديث المشروع بنجاح',
+    'project_deleted' => 'تم حذف المشروع بنجاح',
 
     //teams
     'team_created' => 'تم إنشاء الفريق بنجاح',

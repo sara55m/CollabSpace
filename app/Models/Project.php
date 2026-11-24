@@ -63,7 +63,7 @@ class Project extends Model
 
     protected static function booted(): void
     {
-        static::deleting(fn (Project $p) => Storage::deleteDirectory("projects/{$p->id}"));
+        static::deleted(fn (Project $p) => Storage::deleteDirectory("projects/{$p->id}"));
     }
 
     public function scopeVisibleTo(Builder $query,User $user)

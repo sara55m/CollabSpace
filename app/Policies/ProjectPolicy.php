@@ -43,7 +43,8 @@ class ProjectPolicy
      */
     public function update(User $user, Project $project): bool
     {
-        return false;
+        //only project owner can edit project
+        return $project->owner_id === $user->id;
     }
 
     /**
@@ -51,7 +52,8 @@ class ProjectPolicy
      */
     public function delete(User $user, Project $project): bool
     {
-        return false;
+        //only project owner can delete project
+        return $project->owner_id === $user->id;
     }
 
     /**
