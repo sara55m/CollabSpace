@@ -12,6 +12,7 @@ use App\Models\Project;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 
 
 class ProjectController extends Controller
@@ -175,8 +176,16 @@ class ProjectController extends Controller
             throw $e;
         }
 
-        //delete the removed attachments form storage
-        Storage::delete($pathsToDelete);
+        //delete the removed attachments form storage after commit
+        try {
+                Storage::delete($pathsToDelete);
+            } catch (\Throwable $e) {
+                Log::warning('Failed to delete old task attachment files', [
+                    'project_id' => $project->id,
+                    'paths'   => $pathsToDelete,
+                    'error'   => $e->getMessage(),
+                ]);
+            }
 
         $project->refresh()->load([
             'owner:id,name',

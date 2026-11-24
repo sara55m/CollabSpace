@@ -23,4 +23,6 @@ return [
     //tasks
     'task_created'  => 'Tâche créée avec succès',
     'task_returned' => 'Tâche renvoyée pour révision',
+    'task_updated' => 'Tâche mise à jour avec succès',
+    'task_deleted' => 'Tâche supprimée avec succès',
 ];

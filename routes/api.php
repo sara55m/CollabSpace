@@ -28,9 +28,7 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::apiResource('projects.teams', TeamController::class)->scoped();
 
         //tasks in a project
-        Route::post('projects/{project}/tasks',[TaskController::class,'store']);
-
-        Route::get('projects/{project}/tasks/{task}',[TaskController::class,'show'])->scopeBindings();
+        Route::apiResource('projects.tasks', TaskController::class)->scoped();
 
 });
 

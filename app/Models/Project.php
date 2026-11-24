@@ -62,6 +62,8 @@ class Project extends Model
         return $this->hasMany(Conversation::class);
     }
 
+    public bool $afterCommit = true;
+
     protected static function booted(): void
     {
         static::deleted(fn (Project $p) => Storage::deleteDirectory("projects/{$p->id}"));

@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\TaskStatus;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -21,8 +22,10 @@ class TaskPolicy
      */
     public function view(User $user, Task $task): bool
     {
-        //only task assignees and task reviewer can view task
-        return $task->assignees()->whereKey($user->id)->exists() || $task->reviewer_id === $user->id;
+        //only task assignees or task reviewer or the project owner can view task
+        return $task->assignees()->whereKey($user->id)->exists() ||
+            $task->reviewer_id === $user->id ||
+            $task->project->owner_id === $user->id;
     }
 
     /**
@@ -38,7 +41,21 @@ class TaskPolicy
      */
     public function update(User $user, Task $task): bool
     {
-        return false;
+        if ($task->status === TaskStatus::Done) {
+            return false; // reopen first by changing status
+        }
+
+        $isOwner    = $task->project->owner_id === $user->id;
+        $isReviewer = $task->reviewer_id === $user->id;
+
+        // while in review, only the people reviewing can edit(reviewer||project owner)
+        if ($task->status === TaskStatus::InReview) {
+            return $isOwner || $isReviewer;
+        }
+        //only task assignees or task reviewer or the project owner can update task
+        return $isOwner ||
+            $isReviewer ||
+            $task->assignees()->whereKey($user->id)->exists();
     }
 
     /**
@@ -46,7 +63,8 @@ class TaskPolicy
      */
     public function delete(User $user, Task $task): bool
     {
-        return false;
+        //only project owner can delete task
+        return $task->project->owner_id === $user->id;
     }
 
     /**
@@ -63,5 +81,30 @@ class TaskPolicy
     public function forceDelete(User $user, Task $task): bool
     {
         return false;
+    }
+
+    public function updateStatus(User $user,Task $task,TaskStatus $to)
+    {
+        $isOwner=$task->project->owner_id===$user->id;
+        $isReviewer=$task->reviewer_id===$user->id;
+        $isAssignee=$task->assignees()->whereKey($user->id)->exists();
+
+        return match(true)
+        {
+            in_array($to,[TaskStatus::InProgress,TaskStatus::Todo,TaskStatus::InReview],true)
+            && $task->status !== TaskStatus::Done
+            && $task->status !== TaskStatus::InReview
+            => $isAssignee || $isOwner,
+
+            //approving or returning is allowed to reviewer (owner as a fallback)
+            $task->status === TaskStatus::InReview
+            => $isReviewer || $isOwner, //(in-review->done || in-review->in-progress)
+
+            // reopening a done task
+            $task->status === TaskStatus::Done
+                => $isReviewer || $isOwner,
+
+            default => false,
+        };
     }
 }

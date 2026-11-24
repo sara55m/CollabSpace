@@ -19,10 +19,10 @@ class ProjectResource extends JsonResource
             'id'          => $this->id,
             'name'        =>$this->name,
             'type'        =>$this->type,
-            'status'      =>$this->status,
+            'status'      =>$this->status->value,
             'start_date'  => $this->start_date?->format('Y-m-d'),
             'deadline'    => $this->deadline?->format('Y-m-d'),
-            'priority'    =>$this->priority,
+            'priority'    =>$this->priority->value,
 
             'members'     =>$this->whenLoaded('members',fn()=>$this->members->map(fn ($member) => [
                 'id'    => $member->id,

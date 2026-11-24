@@ -23,4 +23,6 @@ return [
     //tasks
     'task_created'  => 'تم إنشاء المهمة بنجاح',
     'task_returned' => 'تمت إعادة المهمة للمراجعة',
+    'task_updated' => 'تم تحديث المهمة بنجاح',
+    'task_deleted' => 'تم حذف المهمة بنجاح',
 ];

@@ -58,8 +58,14 @@ class UpdateRequest extends FormRequest
             'attachments'    => ['sometimes', 'array', 'max:10'],
             'attachments.*' => ['file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,png,jpg,jpeg'],
 
+            //remove attachment ids must belong to the project
             'remove_attachments'   => ['sometimes', 'array'],
-            'remove_attachments.*' => ['integer', 'distinct'],
+            'remove_attachments.*' => [
+                'integer', 'distinct',
+                Rule::exists('attachments', 'id')
+                    ->where('attachable_type', $project->getMorphClass())
+                    ->where('attachable_id', $project->id),
+            ],
         ];
     }
 }

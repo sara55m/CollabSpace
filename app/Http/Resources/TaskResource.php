@@ -17,10 +17,10 @@ class TaskResource extends JsonResource
         return [
             'id'          => $this->id,
             'title'        =>$this->title,
-            'status'      =>$this->status,
+            'status'      =>$this->status->value,
             'start_date'  => $this->start_date?->format('Y-m-d'),
             'due_date'    => $this->due_date?->format('Y-m-d'),
-            'priority'    =>$this->priority,
+            'priority'    =>$this->priority->value,
             'progress'=>$this->progress,
 
             'completed_at' => $this->completed_at?->toIso8601String(),

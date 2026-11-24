@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\Storage;
 
 class Task extends Model
 {
@@ -49,4 +50,15 @@ class Task extends Model
     {
         return $this->morphMany(Attachment::class,'attachable');
     }
+
+    public bool $afterCommit = true;
+
+    protected static function booted(): void
+    {
+        static::deleted(function (Task $task) {
+            Storage::deleteDirectory("projects/{$task->project_id}/tasks/{$task->id}");
+        });
+    }
+
+
 }

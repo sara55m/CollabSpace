@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\TaskResource;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Task;
+use App\Http\Requests\Tasks\UpdateRequest;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 
 class TaskController extends Controller
 {
@@ -66,7 +69,8 @@ class TaskController extends Controller
 
     }
 
-    public function show(Project $project,Task $task){
+    public function show(Project $project,Task $task): JsonResponse
+    {
         Gate::authorize('view',$task);
 
         $task->load(['assignees','attachments'])->loadCount(['attachments','assignees']);
@@ -75,5 +79,101 @@ class TaskController extends Controller
             'message' => __("messages.task_returned"),
             'data' => new TaskResource($task),
         ]);
+    }
+
+    public function update(UpdateRequest $request,Project $project, Task $task): JsonResponse
+    {
+        $validated    = $request->validated();
+        $user       = $request->user();
+        $storedPaths  = [];
+        $pathsToDelete = [];
+
+        try {
+            $task=DB::transaction(function () use ($task, $validated, $user, &$storedPaths, &$pathsToDelete) {
+                //lock concurrent updates on task
+                $task = Task::whereKey($task->id)->lockForUpdate()->firstOrFail();
+
+                //re-check update policy(status may change)
+                Gate::forUser($user)->authorize('update', $task);
+
+                $data = Arr::except($validated, ['assignees', 'attachments', 'remove_attachments']);
+
+                $teamChanged = array_key_exists('team_id', $data)
+                    && $data['team_id'] != $task->team_id;
+
+                $task->update($data);
+
+                // assignees
+                if (array_key_exists('assignees', $validated)) {
+                    $task->assignees()->sync($validated['assignees'] ?? []);
+                } elseif ($teamChanged) {
+                    // team changed but no new list sent: drop assignees who aren't allowed anymore
+                    $allowed = $task->team_id
+                        ? $task->team->members()->pluck('users.id')
+                        : $task->project->members()->pluck('users.id');
+
+                    $invalid = $task->assignees()->whereNotIn('users.id', $allowed)->pluck('users.id');
+                    $task->assignees()->detach($invalid);
+                }
+
+                // remove attachments (DB rows now, files after commit)
+                if (!empty($validated['remove_attachments'])) {
+                    $old = $task->attachments()->whereIn('id', $validated['remove_attachments'])->get();
+                    $pathsToDelete = $old->pluck('path')->all();
+                    $task->attachments()->whereIn('id', $old->pluck('id'))->delete();
+                }
+
+                // add attachments
+                foreach ($validated['attachments'] ?? [] as $file) {
+                    $path = $file->store("projects/{$task->project_id}/tasks/{$task->id}/attachments");
+                    $storedPaths[] = $path;
+
+                    $task->attachments()->create([
+                        'uploaded_by' => $user->id,
+                        'name'        => $file->getClientOriginalName(),
+                        'path'        => $path,
+                        'mime_type'   => $file->getMimeType(),
+                        'size'        => $file->getSize(),
+                    ]);
+                }
+
+                return $task;
+            });
+        } catch (\Throwable $e) {
+            Storage::delete($storedPaths);
+            throw $e;
+        }
+
+        //delete the removed attachments form storage after commit
+        try {
+                Storage::delete($pathsToDelete);
+            } catch (\Throwable $e) {
+                Log::warning('Failed to delete old task attachment files', [
+                    'task_id' => $task->id,
+                    'paths'   => $pathsToDelete,
+                    'error'   => $e->getMessage(),
+                ]);
+            }
+
+        $task->load(['assignees:id,name', 'attachments'])
+            ->loadCount(['attachments', 'assignees']);
+
+        return response()->json([
+            'message' => __('messages.task_updated'),
+            'data'    => new TaskResource($task),
+        ]);
+    }
+
+    public function destroy(Project $project,Task $task): JsonResponse
+    {
+        Gate::authorize('delete', $task);
+
+        DB::transaction(function () use ($task) {
+            $task->assignees()->detach();
+            $task->attachments()->delete();
+            $task->delete();
+        });
+
+        return response()->json(['message' => __('messages.task_deleted')]);
     }
 }

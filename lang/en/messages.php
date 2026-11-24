@@ -23,4 +23,6 @@ return [
     //tasks
     'task_created'  => 'Task created successfully',
     'task_returned' => 'Task returned for revision',
+    'task_updated' => 'Task updated successfully',
+    'task_deleted' => 'Task deleted successfully',
 ];
