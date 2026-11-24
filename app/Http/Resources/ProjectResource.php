@@ -33,7 +33,13 @@ class ProjectResource extends JsonResource
                 $this->whenLoaded('attachments')
             ),
 
+            'teams' => TeamResource::collection(
+                $this->whenLoaded('teams')
+            ),
+
             'attachments_count' =>$this->attachments_count,
+
+            'teams_count' =>$this->teams_count,
         ];
     }
 }

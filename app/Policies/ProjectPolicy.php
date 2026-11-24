@@ -32,6 +32,12 @@ class ProjectPolicy
         return true;
     }
 
+    // only project owner can add teams
+    public function createTeam(User $user, Project $project): bool
+    {
+        return $project->owner_id === $user->id;
+    }
+
     /**
      * Determine whether the user can update the model.
      */

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Project;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Http\JsonResponse;
 
 
 class ProjectController extends Controller
@@ -25,7 +26,7 @@ class ProjectController extends Controller
         ->visibleTo($request->user())
         ->filter($filters)
         ->with('members:id,name')
-        ->withCount('attachments')
+        ->withCount(['attachments','teams'])
         ->orderBy('created_at', ($filters['sort'] ?? 'newest') === 'oldest' ? 'asc' : 'desc')
         ->paginate($filters['per_page'] ?? 15)
         ->withQueryString();
@@ -38,7 +39,7 @@ class ProjectController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreRequest $request)
+    public function store(StoreRequest $request): JsonResponse
     {
         $validated = $request->validated();
         $userId = $request->user()->id;
@@ -78,8 +79,9 @@ class ProjectController extends Controller
                 return $project->refresh()->load([
                     'owner:id,name',
                     'members:id,name',
-                    'attachments'
-                ])->loadCount('attachments');
+                    'teams.members:id,name',
+                    'attachments',
+                ])->loadCount(['attachments','teams']);
             });
         } catch (\Throwable $e) {
             // A database rollback does not remove files from storage.
@@ -100,11 +102,11 @@ class ProjectController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Project $project)
+    public function show(Project $project): JsonResponse
     {
         Gate::authorize('view',$project);
 
-        $project->load(['tasks','teams','attachments','members'])->loadCount('attachments');
+        $project->load(['tasks','teams.members','attachments','members'])->loadCount(['attachments','teams']);
 
         return response()->json([
             'message'=>__("messages.project_returned"),
