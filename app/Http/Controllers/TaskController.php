@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\TaskStatus;
 use App\Http\Requests\Tasks\StoreRequest;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
@@ -11,8 +12,11 @@ use App\Http\Resources\TaskResource;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Task;
 use App\Http\Requests\Tasks\UpdateRequest;
+use App\Http\Requests\Tasks\UpdateStatusRequest;
+use App\Http\Requests\Tasks\UpdateProgressRequest;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class TaskController extends Controller
 {
@@ -175,5 +179,91 @@ class TaskController extends Controller
         });
 
         return response()->json(['message' => __('messages.task_deleted')]);
+    }
+
+    public function updateStatus(UpdateStatusRequest $request,Task $task)
+    {
+        $user=$request->user();
+        $to=TaskStatus::from($request->validated('status'));
+        $task=DB::transaction(function() use ($task,$to,$user,&$from){
+            //lock task row to prevent concurrent updates
+            $task = Task::whereKey($task->id)->lockForUpdate()->firstOrFail();
+            //re-check change status policy
+            Gate::forUser($user)->authorize('changeStatus',$task);
+            //check if the old status can be transitioned to the new status
+            if(! $task->status->canTransitionTo($to)){
+                throw ValidationException::withMessages([
+                    'status' => __('messages.invalid_status_transition'),
+                ]);
+            }
+
+            //change progress and completed_at values to match the new status
+            $changes = ['status' => $to];
+
+            $from=$task->status;
+            match ($to) {
+                TaskStatus::Todo       => $changes += ['progress' => 0, 'completed_at' => null],
+                TaskStatus::InProgress => $changes += [
+                    'completed_at' => null,
+                    'progress'     => min($task->progress ?? 0, 90), // returned/reopened: not "finished"
+                ],
+                TaskStatus::InReview   => $changes += ['progress' => 100, 'completed_at' => null],
+                TaskStatus::Done       => $changes += ['progress' => 100, 'completed_at' => now()],
+            };
+
+            $task->update($changes);
+
+            return $task;
+
+        });
+        $task->load('assignees:id,name')->loadCount(['attachments', 'assignees']);
+
+        // returning a task for revision gets its own message
+        $message = ($from === TaskStatus::InReview && $to === TaskStatus::InProgress)
+            ? 'messages.task_returned'
+            : 'messages.task_status_updated';
+
+        return response()->json([
+            'message' => __($message),
+            'data'    => new TaskResource($task),
+        ]);
+    }
+
+    public function updateProgress(UpdateProgressRequest $request, Task $task): JsonResponse
+    {
+        $progress = $request->validated('progress');
+        $user     = $request->user();
+
+        $task = DB::transaction(function () use ($task, $progress, $user) {
+            //lock task row to prevent concurrent updates
+            $task = Task::whereKey($task->id)->lockForUpdate()->firstOrFail();
+            //re-check update progress policy
+            Gate::forUser($user)->authorize('updateProgress', $task);
+
+            // progress is locked while under review or done
+            if (! in_array($task->status, [TaskStatus::Todo, TaskStatus::InProgress], true)) {
+                throw ValidationException::withMessages([
+                    'progress' => __('messages.progress_locked'),
+                ]);
+            }
+
+            $changes = ['progress' => $progress];
+
+            // starting work(increasing progress value) moves the task status from todo--->in_progress automatically
+            if ($task->status === TaskStatus::Todo && $progress > 0) {
+                $changes['status'] = TaskStatus::InProgress;
+            }
+
+            $task->update($changes);
+
+            return $task;
+        });
+
+        $task->load('assignees:id,name')->loadCount(['attachments', 'assignees']);
+
+        return response()->json([
+            'message' => __('messages.task_progress_updated'),
+            'data'    => new TaskResource($task),
+        ]);
     }
 }

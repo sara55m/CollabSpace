@@ -25,4 +25,9 @@ return [
     'task_returned' => 'تمت إعادة المهمة للمراجعة',
     'task_updated' => 'تم تحديث المهمة بنجاح',
     'task_deleted' => 'تم حذف المهمة بنجاح',
+
+    'task_status_updated'       => 'تم تحديث حالة المهمة بنجاح',
+    'task_progress_updated'     => 'تم تحديث تقدم المهمة بنجاح',
+    'invalid_status_transition' => 'لا يمكن نقل المهمة إلى هذه الحالة.',
+    'progress_locked'           => 'لا يمكن تغيير التقدم أثناء المراجعة أو بعد اكتمال المهمة.',
 ];

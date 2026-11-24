@@ -25,4 +25,9 @@ return [
     'task_returned' => 'Task returned for revision',
     'task_updated' => 'Task updated successfully',
     'task_deleted' => 'Task deleted successfully',
+
+    'task_status_updated'       => 'Task status updated successfully',
+    'task_progress_updated'     => 'Task progress updated successfully',
+    'invalid_status_transition' => 'This status change is not allowed.',
+    'progress_locked'           => 'Progress cannot be changed while the task is in review or done.',
 ];

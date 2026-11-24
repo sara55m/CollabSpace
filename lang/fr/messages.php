@@ -25,4 +25,9 @@ return [
     'task_returned' => 'Tâche renvoyée pour révision',
     'task_updated' => 'Tâche mise à jour avec succès',
     'task_deleted' => 'Tâche supprimée avec succès',
+
+    'task_status_updated'       => 'Statut de la tâche mis à jour avec succès',
+    'task_progress_updated'     => 'Progression de la tâche mise à jour avec succès',
+    'invalid_status_transition' => 'Ce changement de statut n’est pas autorisé.',
+    'progress_locked'           => 'La progression ne peut pas être modifiée pendant la révision ou une fois la tâche terminée.',
 ];

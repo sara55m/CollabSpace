@@ -83,28 +83,23 @@ class TaskPolicy
         return false;
     }
 
-    public function updateStatus(User $user,Task $task,TaskStatus $to)
+    public function changeStatus(User $user,Task $task): bool
     {
         $isOwner=$task->project->owner_id===$user->id;
         $isReviewer=$task->reviewer_id===$user->id;
         $isAssignee=$task->assignees()->whereKey($user->id)->exists();
 
-        return match(true)
-        {
-            in_array($to,[TaskStatus::InProgress,TaskStatus::Todo,TaskStatus::InReview],true)
-            && $task->status !== TaskStatus::Done
-            && $task->status !== TaskStatus::InReview
-            => $isAssignee || $isOwner,
-
-            //approving or returning is allowed to reviewer (owner as a fallback)
-            $task->status === TaskStatus::InReview
-            => $isReviewer || $isOwner, //(in-review->done || in-review->in-progress)
-
-            // reopening a done task
-            $task->status === TaskStatus::Done
-                => $isReviewer || $isOwner,
-
-            default => false,
+        return match ($task->status) {
+            TaskStatus::Todo,
+            TaskStatus::InProgress => $isAssignee || $isOwner,  // doing the work
+            TaskStatus::InReview   => $isReviewer || $isOwner,   //approving or returning is allowed to reviewer (owner as a fallback) (in-review->done || in-review->in-progress)
+            TaskStatus::Done       => $isReviewer || $isOwner,  // reopening a done task
         };
+    }
+
+    public function updateProgress(User $user, Task $task): bool
+    {
+        return $task->project->owner_id === $user->id
+            || $task->assignees()->whereKey($user->id)->exists();
     }
 }

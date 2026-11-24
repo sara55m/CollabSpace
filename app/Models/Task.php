@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\Storage;
 
 class Task extends Model
 {
-    protected $fillable = ['team_id','reviewer_id','title','description','status','priority','progress','sort_order','due_date','start_date'];
+    protected $fillable = ['team_id','reviewer_id','title','description','status','priority','progress','sort_order','due_date','start_date',
+    'completed_at'];
 
     protected function casts(): array
     {

@@ -30,6 +30,11 @@ Route::middleware('auth:sanctum')->group(function(){
         //tasks in a project
         Route::apiResource('projects.tasks', TaskController::class)->scoped();
 
+        //update task status
+        Route::patch('tasks/{task}/status',[TaskController::class,'updateStatus']);
+        //update task progress
+        Route::patch('tasks/{task}/progress',[TaskController::class,'updateProgress']);
+
 });
 
 
