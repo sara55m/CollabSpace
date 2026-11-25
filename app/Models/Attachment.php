@@ -20,7 +20,7 @@ class Attachment extends Model
 
     public function attachable(): MorphTo
     {
-        return $this->morphTo();  //project|task
+        return $this->morphTo();  //project|task|message
     }
 
     public function uploader(): BelongsTo

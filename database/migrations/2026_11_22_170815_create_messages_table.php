@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('conversation_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
-            $table->text('body');
+            $table->text('body')->nullable();
             $table->timestamps();
 
-            $table->index(['conversation_id', 'created_at']); 
+            $table->index(['conversation_id', 'created_at']);
         });
     }
 

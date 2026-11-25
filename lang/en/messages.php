@@ -31,4 +31,13 @@ return [
     'task_progress_updated'     => 'Task progress updated successfully',
     'invalid_status_transition' => 'This status change is not allowed.',
     'progress_locked'           => 'Progress cannot be changed while the task is in review or done.',
+
+    //conversations
+    'conversations_retrieved' => 'Conversations retrieved successfully.',
+    'conversation_created'    => 'Conversation created successfully.',
+    'message_sent'            => 'Message sent successfully.',
+    'marked_as_read'          => 'Conversation marked as read.',
+    'deleted_user'            => 'Deleted user',
+    'users_not_in_project'    => 'All participants must be members of the selected project.',
+    'no_shared_project'       => 'You can only message users who share at least one project with you.',
 ];

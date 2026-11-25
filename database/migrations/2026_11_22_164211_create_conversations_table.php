@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('conversations', function (Blueprint $table) {
             $table->id();
+            $table->string('title')->nullable();
+            $table->string('avatar')->nullable();
             $table->string('type');                                   // direct | project
             $table->foreignId('project_id')->nullable()->unique()     // one channel per project
                 ->constrained()->cascadeOnDelete();

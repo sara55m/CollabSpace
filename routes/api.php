@@ -4,8 +4,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ConversationController;
 
 Route::prefix('auth')->group(function(){
 
@@ -26,7 +26,7 @@ Route::middleware('auth:sanctum')->group(function(){
 
         //teams scoped in a project
         Route::apiResource('projects.teams', TeamController::class)->scoped();
-        
+
         //tasks
         Route::get('tasks', [TaskController::class, 'myTasks']);
         //tasks in a project
@@ -36,6 +36,11 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::patch('tasks/{task}/status',[TaskController::class,'updateStatus']);
         //update task progress
         Route::patch('tasks/{task}/progress',[TaskController::class,'updateProgress']);
+
+        //conversations
+        Route::get('conversations/',[ConversationController::class,'index']);
+
+        Route::post('conversations/',[ConversationController::class,'store']);
 
 });
 

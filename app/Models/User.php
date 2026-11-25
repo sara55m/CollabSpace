@@ -11,6 +11,9 @@ use App\Enums\AvailabilityStatus;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Storage;
+
 
 class User extends Authenticatable
 {
@@ -24,7 +27,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name', 'email', 'password', 'phone',
-        'job_title', 'years_of_experience', 'bio', 'availability_status',
+        'job_title', 'years_of_experience', 'bio', 'availability_status','avatar',
     ];
 
     /**
@@ -93,5 +96,11 @@ class User extends Authenticatable
             ->using(ConversationUser::class)
             ->withPivot('last_read_at')
             ->withTimestamps();
+    }
+    protected function avatar(): Attribute
+    {
+        return Attribute::get(fn (?string $value) => $value
+            ? Storage::disk('public')->url($value)
+            : null);
     }
 }

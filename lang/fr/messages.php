@@ -31,4 +31,13 @@ return [
     'task_progress_updated'     => 'Progression de la tâche mise à jour avec succès',
     'invalid_status_transition' => 'Ce changement de statut n’est pas autorisé.',
     'progress_locked'           => 'La progression ne peut pas être modifiée pendant la révision ou une fois la tâche terminée.',
+
+    //conversations
+    'conversations_retrieved' => 'Conversations récupérées avec succès.',
+    'conversation_created'    => 'Conversation créée avec succès.',
+    'message_sent'            => 'Message envoyé avec succès.',
+    'marked_as_read'          => 'Conversation marquée comme lue.',
+    'deleted_user'            => 'Utilisateur supprimé',
+    'users_not_in_project'    => 'Tous les participants doivent être membres du projet sélectionné.',
+    'no_shared_project'       => 'Vous ne pouvez envoyer des messages qu\'aux utilisateurs qui partagent au moins un projet avec vous.',
 ];
