@@ -40,6 +40,13 @@ class TaskResource extends JsonResource
                 $this->whenLoaded('attachments')
             ),
 
+            'project'  => $this->whenLoaded('project', fn () => [
+                'id' => $this->project->id, 'name' => $this->project->name,
+            ]),
+            'reviewer' => $this->whenLoaded('reviewer', fn () => [
+                'id' => $this->reviewer->id, 'name' => $this->reviewer->name,
+            ]),
+
             'attachments_count'=>$this->whenCounted('attachments_count'),
             'assignees_count'=>$this->whenCounted('assignees_count'),
         ];

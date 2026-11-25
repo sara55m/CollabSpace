@@ -25,6 +25,7 @@ return [
     'task_returned' => 'Task returned for revision',
     'task_updated' => 'Task updated successfully',
     'task_deleted' => 'Task deleted successfully',
+    'tasks_retrieved' => 'Tasks retrieved successfully',
 
     'task_status_updated'       => 'Task status updated successfully',
     'task_progress_updated'     => 'Task progress updated successfully',

@@ -14,12 +14,55 @@ use App\Models\Task;
 use App\Http\Requests\Tasks\UpdateRequest;
 use App\Http\Requests\Tasks\UpdateStatusRequest;
 use App\Http\Requests\Tasks\UpdateProgressRequest;
+use App\Http\Requests\Tasks\IndexRequest;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class TaskController extends Controller
 {
+    public function index(IndexRequest $request,Project $project)
+    {
+        $filters=$request->validated();
+
+        $tasks=$project->tasks()
+        ->filter($filters)
+        ->with(['assignees:id,name', 'reviewer:id,name'])
+        ->withCount(['attachments', 'assignees'])
+        ->orderBy('sort_order')
+        ->paginate($filters['per_page'] ?? 20);
+
+        return TaskResource::collection($tasks)
+        ->additional(['message' => __('messages.tasks_retrieved')])
+        ->response();
+
+    }
+
+    public function myTasks(IndexRequest $request)
+    {
+        $filters=$request->validated();
+        $user=$request->user();
+
+        $tasks=Task::query()
+        //the user must be assigned the task
+        ->whereHas('assignees',fn($q)=>$q->whereKey($user->id))
+        //the user must be a member in the task project
+        ->whereHas('project.members', fn ($q) => $q->whereKey($user->id))
+        ->when($filters['project_id'] ?? null, fn ($q, $id) => $q->where('project_id', $id))
+        ->filter($filters)
+        ->with(['project:id,name', 'assignees:id,name', 'reviewer:id,name'])
+        ->withCount(['attachments', 'assignees'])
+        ->orderByRaw('due_date is null')  // tasks without a due date at the end
+        ->orderBy('due_date')
+        ->orderBy('id')
+        ->paginate($filters['per_page'] ?? 20);
+
+        return TaskResource::collection($tasks)
+        ->additional(['message' => __('messages.tasks_retrieved')])
+        ->response();
+
+    }
+
     public function store(StoreRequest $request,Project $project): JsonResponse
     {
         $validated = $request->validated();

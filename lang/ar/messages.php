@@ -25,6 +25,7 @@ return [
     'task_returned' => 'تمت إعادة المهمة للمراجعة',
     'task_updated' => 'تم تحديث المهمة بنجاح',
     'task_deleted' => 'تم حذف المهمة بنجاح',
+    'tasks_retrieved' => 'تم جلب المهام بنجاح',
 
     'task_status_updated'       => 'تم تحديث حالة المهمة بنجاح',
     'task_progress_updated'     => 'تم تحديث تقدم المهمة بنجاح',
