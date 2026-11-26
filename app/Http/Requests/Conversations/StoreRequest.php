@@ -63,6 +63,7 @@ class StoreRequest extends FormRequest
             'project_id' => [
                 $group,
                 Rule::requiredIf($isGroup),
+                'unique:conversations,project_id',
                 'bail',
                 'integer',
                 Rule::exists('project_user', 'project_id')->where('user_id', $me),

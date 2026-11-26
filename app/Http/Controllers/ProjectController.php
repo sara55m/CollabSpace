@@ -147,6 +147,8 @@ class ProjectController extends Controller
 
                     //sync project members
                     $project->members()->sync($memberIds);
+                    //sync conversation participants
+                    $project->syncConversationParticipants();
                 }
 
                 if(!empty($validated['remove_attachments'])){

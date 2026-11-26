@@ -32,7 +32,7 @@ return [
     'invalid_status_transition' => 'لا يمكن نقل المهمة إلى هذه الحالة.',
     'progress_locked'           => 'لا يمكن تغيير التقدم أثناء المراجعة أو بعد اكتمال المهمة.',
 
-    //conversations
+    //conversations & messages
     'conversations_retrieved' => 'تم جلب المحادثات بنجاح',
     'conversation_created'    => 'تم إنشاء المحادثة بنجاح.',
     'message_sent'            => 'تم إرسال الرسالة بنجاح.',
@@ -40,4 +40,6 @@ return [
     'deleted_user'            => 'مستخدم محذوف',
     'users_not_in_project'    => 'يجب أن يكون جميع المشاركين أعضاء في المشروع المحدد.',
     'no_shared_project'       => 'يمكنك مراسلة المستخدمين الذين يشاركونك في مشروع واحد على الأقل فقط.',
+    'message_updated' => 'تم تعديل الرسالة بنجاح.',
+    'message_deleted' => 'تم حذف الرسالة بنجاح.',
 ];

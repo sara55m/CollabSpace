@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Enums\ConversationType;
 use App\Models\Attachment;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Builder;
@@ -57,9 +59,33 @@ class Project extends Model
         return $this->hasMany(Meeting::class);
     }
 
-    public function conversations(): HasMany
+    public function conversation(): HasOne
     {
-        return $this->hasMany(Conversation::class);
+        return $this->hasOne(Conversation::class)->where('type', ConversationType::Project);
+    }
+
+    public function syncConversationParticipants(): void
+    {
+        $conversation = $this->conversation;
+
+        if (! $conversation) {
+            return;
+        }
+
+        $memberIds  = $this->members()->pluck('users.id');
+        $currentIds = $conversation->participants()->pluck('users.id');
+
+        // new project members join the chat
+        $toAttach = $memberIds->diff($currentIds)->all();
+        if ($toAttach) {
+            $conversation->participants()->attach($toAttach, ['last_read_at' => now()]);
+        }
+
+        // users removed from the project leave the chat
+        $toDetach = $currentIds->diff($memberIds)->all();
+        if ($toDetach) {
+            $conversation->participants()->detach($toDetach);
+        }
     }
 
     public bool $afterCommit = true;

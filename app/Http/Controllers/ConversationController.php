@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ConversationType;
 use App\Http\Requests\Conversations\IndexRequest;
 use App\Http\Requests\Conversations\StoreRequest;
+use App\Http\Requests\Messages\StoreRequest as MessagesStoreRequest;
 use App\Http\Resources\ConversationResource;
 use Illuminate\Http\JsonResponse;
 use App\Models\Conversation;
@@ -12,6 +13,8 @@ use App\Models\Message;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\Gate;
+use App\Http\Resources\MessageResource;
 
 
 class ConversationController extends Controller
@@ -130,5 +133,57 @@ class ConversationController extends Controller
             ->additional(['message' => __('messages.conversation_created')])
             ->response()
             ->setStatusCode($conversation->wasRecentlyCreated ? 201 : 200);
+    }
+
+    public function sendMessage(MessagesStoreRequest $request, Conversation $conversation): JsonResponse
+    {
+        Gate::authorize('sendMessage', $conversation);
+
+        $user = $request->user();
+        $storedPaths = [];
+
+        try {
+            $message = DB::transaction(function () use ($request, $conversation, $user, &$storedPaths) {
+                $message = $conversation->messages()->create([
+                    'user_id' => $user->id,
+                    'body'    => $request->validated('body'),
+                ]);
+
+                foreach ($request->file('attachments', []) as $file) {
+                    $path = $file->store(
+                        "conversations/{$conversation->id}/messages/{$message->id}",
+                        'local'
+                    );
+
+                    $storedPaths[] = $path;
+
+                    $message->attachments()->create([
+                        'path'      => $path,
+                        'name'      => $file->getClientOriginalName(),
+                        'mime_type' => $file->getMimeType(),
+                        'size'      => $file->getSize(),
+                    ]);
+                }
+
+                // the sender has seen everything up to their own message
+                $conversation->participants()->updateExistingPivot($user->id, [
+                    'last_read_at' => $message->created_at,
+                ]);
+
+                return $message;
+            });
+        } catch (\Throwable $e) {
+            // the database rolled back, so cleanup storage
+            Storage::disk('local')->delete($storedPaths);
+
+            throw $e;
+        }
+
+        $message->load(['sender:id,name,avatar', 'attachments']);
+
+        return (new MessageResource($message))
+            ->additional(['message' => __('messages.message_sent')])
+            ->response()
+            ->setStatusCode(201);
     }
 }

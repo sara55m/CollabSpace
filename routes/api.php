@@ -6,6 +6,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\MessageController;
 
 Route::prefix('auth')->group(function(){
 
@@ -41,6 +42,12 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::get('conversations/',[ConversationController::class,'index']);
 
         Route::post('conversations/',[ConversationController::class,'store']);
+        //conversation messages
+        Route::post('conversations/{conversation}/messages',[ConversationController::class,'sendMessage']);
+
+        Route::patch('messages/{message}',[MessageController::class,'update']);
+
+        Route::delete('messages/{message}',[MessageController::class,'destroy']);
 
 });
 
