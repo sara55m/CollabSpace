@@ -46,8 +46,13 @@ class ConversationController extends Controller
         //do not show empty chats
         ->whereNotNull('conversations.last_message_at')
         ->when($filters['type'] ?? null,fn($q,$t)=>$q->where('conversations.type',$t))
+        ->when($filters['search'] ?? null, function ($q, $term) {
+            $like = '%' . addcslashes($term, '\\%_') . '%';
+
+            $q->where('conversations.title', 'like', $like);
+        })
         //load last message
-        ->with('latestMessage:id,conversation_id,user_id,body,created_at')
+        ->with('latestMessage:messages.id,messages.conversation_id,messages.user_id,messages.body,messages.created_at')
         ->orderByDesc('conversations.last_message_at')
         ->orderByDesc('conversations.id')
         ->paginate($filters['per_page'] ?? 20);

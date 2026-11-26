@@ -35,6 +35,7 @@ return [
     //conversations & messages
     'conversations_retrieved' => 'تم جلب المحادثات بنجاح',
     'conversation_created'    => 'تم إنشاء المحادثة بنجاح.',
+    'messages_retrieved' => 'تم جلب الرسائل بنجاح.',
     'message_sent'            => 'تم إرسال الرسالة بنجاح.',
     'marked_as_read'          => 'تم تحديد المحادثة كمقروءة.',
     'deleted_user'            => 'مستخدم محذوف',

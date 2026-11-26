@@ -25,6 +25,7 @@ class IndexRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'search' => ['nullable', 'string', 'max:100'],
             'type'=>['nullable',Rule::enum(ConversationType::class)],
             'per_page' => ['nullable', 'integer', 'between:1,100'],
         ];

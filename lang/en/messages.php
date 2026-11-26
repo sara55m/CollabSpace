@@ -35,6 +35,7 @@ return [
     //conversations & messages
     'conversations_retrieved' => 'Conversations retrieved successfully.',
     'conversation_created'    => 'Conversation created successfully.',
+    'messages_retrieved' => 'Messages retrieved successfully.',
     'message_sent'            => 'Message sent successfully.',
     'marked_as_read'          => 'Conversation marked as read.',
     'deleted_user'            => 'Deleted user',

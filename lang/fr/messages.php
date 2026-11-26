@@ -35,6 +35,7 @@ return [
     //conversations & messages
     'conversations_retrieved' => 'Conversations récupérées avec succès.',
     'conversation_created'    => 'Conversation créée avec succès.',
+    'messages_retrieved' => 'Messages récupérés avec succès.',
     'message_sent'            => 'Message envoyé avec succès.',
     'marked_as_read'          => 'Conversation marquée comme lue.',
     'deleted_user'            => 'Utilisateur supprimé',

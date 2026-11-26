@@ -8,9 +8,26 @@ use Illuminate\Http\JsonResponse;
 use App\Models\Message;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\Messages\UpdateRequest;
+use App\Models\Conversation;
+use App\Http\Requests\Messages\IndexRequest;
 
 class MessageController extends Controller
 {
+    public function index(IndexRequest $request, Conversation $conversation): JsonResponse
+    {
+        Gate::authorize('view', $conversation);
+
+        $messages = $conversation->messages()
+            ->with(['sender:id,name,avatar', 'attachments'])
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->cursorPaginate($request->validated('per_page') ?? 30);
+
+        return MessageResource::collection($messages)
+            ->additional(['message' => __('messages.messages_retrieved')])
+            ->response();
+    }
+
     public function update(UpdateRequest $request, Message $message): JsonResponse
     {
         Gate::authorize('update', $message);
