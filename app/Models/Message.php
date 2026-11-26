@@ -27,6 +27,12 @@ class Message extends Model
         return $this->morphMany(Attachment::class,'attachable');
     }
 
+    public function withinDeleteWindow(): bool
+    {
+        //a message can be deleted if it is within the allowed duration(ex:15 minutes)
+        return $this->created_at->gt(now()->subMinutes(config('conversation.delete_window_minutes')));
+    }
+
     //set conversation last_message_at as the time the message was sent
     protected static function booted(): void
     {

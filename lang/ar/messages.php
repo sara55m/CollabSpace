@@ -42,4 +42,6 @@ return [
     'no_shared_project'       => 'يمكنك مراسلة المستخدمين الذين يشاركونك في مشروع واحد على الأقل فقط.',
     'message_updated' => 'تم تعديل الرسالة بنجاح.',
     'message_deleted' => 'تم حذف الرسالة بنجاح.',
+    'cannot_delete_message' => 'لا يمكنك حذف هذه الرسالة.',
+    'delete_window_expired' => 'يمكنك حذف الرسالة خلال :minutes دقيقة فقط من إرسالها.',
 ];

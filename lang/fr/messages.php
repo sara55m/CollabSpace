@@ -42,4 +42,6 @@ return [
     'no_shared_project'       => 'Vous ne pouvez envoyer des messages qu\'aux utilisateurs qui partagent au moins un projet avec vous.',
     'message_updated' => 'Message modifié avec succès.',
     'message_deleted' => 'Message supprimé avec succès.',
+    'cannot_delete_message' => 'Vous ne pouvez pas supprimer ce message.',
+    'delete_window_expired' => 'Vous ne pouvez supprimer un message que dans les :minutes minutes suivant son envoi.',
 ];

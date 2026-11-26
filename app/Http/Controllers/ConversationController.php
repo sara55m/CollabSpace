@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Gate;
 use App\Http\Resources\MessageResource;
+use Illuminate\Http\Request;
 
 
 class ConversationController extends Controller
@@ -185,5 +186,17 @@ class ConversationController extends Controller
             ->additional(['message' => __('messages.message_sent')])
             ->response()
             ->setStatusCode(201);
+    }
+
+    public function markAsRead(Request $request, Conversation $conversation): JsonResponse
+    {
+        Gate::authorize('view', $conversation);
+
+        $conversation->markReadFor($request->user());
+
+        return response()->json([
+            'message' => __('messages.marked_as_read'),
+            'data'    => ['unread_count' => 0],
+        ]);
     }
 }

@@ -46,9 +46,20 @@ class MessagePolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Message $message): bool
+    public function delete(User $user, Message $message): Response
     {
-        return $this->update($user,$message);
+        if(! $this->update($user,$message)){
+            return Response::deny(__('messages.cannot_delete_message'));
+        }
+
+        if (! $message->withinDeleteWindow()) {
+            return Response::deny(__('messages.delete_window_expired', [
+                'minutes' => config('conversation.delete_window_minutes'),
+            ]));
+        }
+
+        return Response::allow();
+
     }
 
     /**

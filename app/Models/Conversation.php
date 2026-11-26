@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Carbon;
 
 
 class Conversation extends Model
@@ -25,6 +26,14 @@ class Conversation extends Model
             'type' => ConversationType::class,
             'last_message_at' => 'datetime'
         ];
+    }
+
+    public function markReadFor(User $user, ?Carbon $at = null): void
+    {
+        //update conversation_user last_read_at for that user conversation
+        $this->participants()->updateExistingPivot($user->id, [
+            'last_read_at' => $at ?? now(),
+        ]);
     }
 
     public function project(): BelongsTo

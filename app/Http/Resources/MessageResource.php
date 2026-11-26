@@ -22,7 +22,7 @@ class MessageResource extends JsonResource
                 && $this->user_id === $request->user()?->id,
             'body'            => $this->body,
             'created_at'      => $this->created_at->toIso8601String(),
-            'edited_at'      => $this->edited_at->toIso8601String(),
+            'edited_at'      => $this->edited_at?->toIso8601String(),
 
             'sender'=>$this->whenLoaded('sender',fn()=>$this->sender ? [
                 'id'=>$this->sender->id,
