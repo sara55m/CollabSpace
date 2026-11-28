@@ -14,6 +14,7 @@ use App\Models\Attachment;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\DB;
 
 class Project extends Model
 {
@@ -59,32 +60,48 @@ class Project extends Model
         return $this->hasMany(Meeting::class);
     }
 
-    public function conversation(): HasOne
+    public function conversations(): HasMany
     {
-        return $this->hasOne(Conversation::class)->where('type', ConversationType::Project);
+        return $this->hasMany(Conversation::class)
+            ->where('type', ConversationType::Project);
+    }
+
+    public function publicConversation(): HasOne
+    {
+        return $this->hasOne(Conversation::class)
+            ->where('type', ConversationType::Project)
+            ->where('is_public', true);
     }
 
     public function syncConversationParticipants(): void
     {
-        $conversation = $this->conversation;
+        $memberIds = $this->members()->pluck('users.id');
 
-        if (! $conversation) {
-            return;
+        // 1. public channel: participants are the project members
+        if ($public = $this->publicConversation) {
+            $currentIds = $public->participants()->pluck('users.id');
+
+            $toAttach = $memberIds->diff($currentIds)->all();
+            if ($toAttach) {
+                $public->participants()->attach($toAttach, ['last_read_at' => now()]);
+            }
+
+            $toDetach = $currentIds->diff($memberIds)->all();
+            if ($toDetach) {
+                $public->participants()->detach($toDetach);
+            }
         }
 
-        $memberIds  = $this->members()->pluck('users.id');
-        $currentIds = $conversation->participants()->pluck('users.id');
+        // 2. team channels: members are chosen, so only remove people who left the project
+        $teamIds = $this->conversations()
+            ->where('is_public', false)
+            ->pluck('id');
 
-        // new project members join the chat
-        $toAttach = $memberIds->diff($currentIds)->all();
-        if ($toAttach) {
-            $conversation->participants()->attach($toAttach, ['last_read_at' => now()]);
-        }
-
-        // users removed from the project leave the chat
-        $toDetach = $currentIds->diff($memberIds)->all();
-        if ($toDetach) {
-            $conversation->participants()->detach($toDetach);
+        if ($teamIds->isNotEmpty()) {
+            DB::table('conversation_user')
+                ->whereIn('conversation_id', $teamIds)
+                ->whereNotIn('user_id', $memberIds)
+                ->delete();
         }
     }
 

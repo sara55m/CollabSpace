@@ -17,14 +17,15 @@ use Illuminate\Support\Carbon;
 
 class Conversation extends Model
 {
-    protected $fillable = ['title','avatar','type', 'project_id', 'direct_key'];
+    protected $fillable = ['title','avatar','type', 'project_id', 'direct_key','is_public'];
 
     protected function casts(): array
     {
         return
         [
             'type' => ConversationType::class,
-            'last_message_at' => 'datetime'
+            'last_message_at' => 'datetime',
+            'is_public'=>'boolean',
         ];
     }
 

@@ -43,8 +43,10 @@ class ConversationController extends Controller
                                     ->orWhereColumn('messages.created_at', '>', 'cu.last_read_at')),
             'unread_count'
         )
-        //do not show empty chats
+        //hide empty direct chats, but always show project channels
+        ->where(fn ($q) => $q
         ->whereNotNull('conversations.last_message_at')
+        ->orWhere('conversations.type', ConversationType::Project->value))
         ->when($filters['type'] ?? null,fn($q,$t)=>$q->where('conversations.type',$t))
         ->when($filters['search'] ?? null, function ($q, $term) {
             $like = '%' . addcslashes($term, '\\%_') . '%';

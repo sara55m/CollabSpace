@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title')->nullable();
             $table->string('avatar')->nullable();
             $table->string('type');                                   // direct | project
-            $table->foreignId('project_id')->nullable()->unique()     // one channel per project
+            $table->foreignId('project_id')->nullable()     // one channel per project
                 ->constrained()->cascadeOnDelete();
             $table->string('direct_key')->nullable()->unique();       //prevent duplicate DMs(user1_id+user2_id)
             $table->timestamp('last_message_at')->nullable();

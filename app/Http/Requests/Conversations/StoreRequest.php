@@ -56,14 +56,15 @@ class StoreRequest extends FormRequest
             ],
 
             // ---- project group only ----
-            'title' => [$group, Rule::requiredIf($isGroup), 'string', 'max:255'],
+            'title' => [$group, Rule::requiredIf($isGroup), 'string', 'max:255',
+                Rule::unique('conversations', 'title')
+                ->where('project_id', $this->input('project_id'))],
             'avatar' => [$group, 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
 
             // the creator must be a member of the project
             'project_id' => [
                 $group,
                 Rule::requiredIf($isGroup),
-                'unique:conversations,project_id',
                 'bail',
                 'integer',
                 Rule::exists('project_user', 'project_id')->where('user_id', $me),

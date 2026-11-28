@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
+use App\Enums\ConversationType;
+
 
 
 class ProjectController extends Controller
@@ -63,6 +65,16 @@ class ProjectController extends Controller
                 $project->members()->sync(
                     collect($validated['members'] ?? [])->push($userId)->unique()
                 );
+
+                //create project public conversation
+                $project->conversations()->create([
+                    'type'      => ConversationType::Project,
+                    'title'     => 'Public Channel',
+                    'is_public' => true,
+                ]);
+
+                //sync conversation participants with project members
+                $project->syncConversationParticipants();
 
                 //upload and attach attachments
                 foreach ($validated['attachments'] ?? [] as $file) {
@@ -147,7 +159,7 @@ class ProjectController extends Controller
 
                     //sync project members
                     $project->members()->sync($memberIds);
-                    //sync conversation participants
+                    //sync conversation participants with current project members
                     $project->syncConversationParticipants();
                 }
 
