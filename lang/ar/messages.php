@@ -45,4 +45,6 @@ return [
     'message_deleted' => 'تم حذف الرسالة بنجاح.',
     'cannot_delete_message' => 'لا يمكنك حذف هذه الرسالة.',
     'delete_window_expired' => 'يمكنك حذف الرسالة خلال :minutes دقيقة فقط من إرسالها.',
+    'conversation_updated' => 'تم تحديث المحادثة بنجاح.',
+    'public_channel_locked' => 'لا يمكن إعادة تسمية القناة العامة.',
 ];

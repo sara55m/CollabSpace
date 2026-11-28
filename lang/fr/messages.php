@@ -45,4 +45,6 @@ return [
     'message_deleted' => 'Message supprimé avec succès.',
     'cannot_delete_message' => 'Vous ne pouvez pas supprimer ce message.',
     'delete_window_expired' => 'Vous ne pouvez supprimer un message que dans les :minutes minutes suivant son envoi.',
+    'conversation_updated' => 'Conversation mise à jour avec succès.',
+    'public_channel_locked' => 'Le canal public ne peut pas être renommé.',
 ];

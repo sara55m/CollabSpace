@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ConversationType;
 use App\Http\Requests\Conversations\IndexRequest;
 use App\Http\Requests\Conversations\StoreRequest;
+use App\Http\Requests\Conversations\UpdateRequest;
 use App\Http\Requests\Messages\StoreRequest as MessagesStoreRequest;
 use App\Http\Resources\ConversationResource;
 use Illuminate\Http\JsonResponse;
@@ -16,6 +17,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Gate;
 use App\Http\Resources\MessageResource;
 use Illuminate\Http\Request;
+use App\Http\Requests\Conversations\UpdateAvatarRequest;
 
 
 class ConversationController extends Controller
@@ -109,28 +111,32 @@ class ConversationController extends Controller
                 ->select('users.id', 'users.name', 'users.avatar')]);
         } else {
              //------Project Group Conversation-----
-            $path = $request->hasFile('avatar')
-                ? $request->file('avatar')->store('conversations/avatars', 'public')
-                : null;
-
+             $storedPath = null;
             try {
-                $conversation = DB::transaction(function () use ($user, $validated, $path) {
+                $conversation = DB::transaction(function () use ($user, $validated, $request,&$storedPath) {
                     $conversation = Conversation::create([
                         'type'       => ConversationType::Project,
                         'title'      => $validated['title'],
                         'project_id' => $validated['project_id'],
-                        'avatar'     => $path,
                     ]);
 
                     $conversation->participants()->attach(
                         array_unique([$user->id, ...$validated['participant_ids']])
                     );
 
+                    //upload avatar file
+                    if ($request->hasFile('avatar')) {
+                        $storedPath = $request->file('avatar')
+                            ->store("conversations/{$conversation->id}/avatar", 'public');
+
+                        $conversation->update(['avatar' => $storedPath]);
+                    }
+
                     return $conversation;
                 });
             } catch (\Throwable $e) {
-                if ($path) {
-                    Storage::disk('public')->delete($path);
+                if ($storedPath) {
+                    Storage::disk('public')->delete($storedPath);
                 }
 
                 throw $e;
@@ -205,5 +211,59 @@ class ConversationController extends Controller
             'message' => __('messages.marked_as_read'),
             'data'    => ['unread_count' => 0],
         ]);
+    }
+
+    public function update(UpdateRequest $request, Conversation $conversation): JsonResponse
+    {
+        Gate::authorize('update', $conversation);
+
+        $conversation->update(['title' => $request->validated('title')]);
+
+        return (new ConversationResource($conversation))
+            ->additional(['message' => __('messages.conversation_updated')])
+            ->response();
+    }
+
+    public function updateAvatar(UpdateAvatarRequest $request, Conversation $conversation): JsonResponse
+    {
+        Gate::authorize('update', $conversation);
+
+        $oldPath = $conversation->getRawOriginal('avatar');
+
+        $newPath = $request->file('avatar')
+            ->store("conversations/{$conversation->id}/avatar", 'public');
+
+        try {
+            $conversation->update(['avatar' => $newPath]);
+        } catch (\Throwable $e) {
+            Storage::disk('public')->delete($newPath);
+
+            throw $e;
+        }
+
+        // delete the old file only after the new one is saved
+        if ($oldPath) {
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        return (new ConversationResource($conversation))
+            ->additional(['message' => __('messages.conversation_updated')])
+            ->response();
+    }
+
+    public function destroyAvatar(Conversation $conversation): JsonResponse
+    {
+        Gate::authorize('update', $conversation);
+
+        if ($oldPath = $conversation->getRawOriginal('avatar')) {
+            $conversation->update(['avatar' => null]);
+            Storage::disk('public')->delete($oldPath);
+            //delete public avatars directory
+            Storage::disk('public')->deleteDirectory("conversations/{$conversation->id}/avatar");
+        }
+
+        return (new ConversationResource($conversation))
+            ->additional(['message' => __('messages.conversation_updated')])
+            ->response();
     }
 }

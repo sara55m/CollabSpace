@@ -7,7 +7,7 @@ use App\Models\Conversation;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Support\Facades\DB;
-use App\Models\Message;
+
 
 class ConversationPolicy
 {
@@ -38,9 +38,20 @@ class ConversationPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Conversation $conversation): bool
+    public function update(User $user, Conversation $conversation): Response
     {
-        return false;
+        //allow editing team project conversations only(no public, no direct)
+        if($conversation->type !== ConversationType::Project){
+            return Response::deny();
+        };
+
+        if ($conversation->is_public) {
+            return Response::deny(__('messages.public_channel_locked'));
+        }
+
+        return $this->sendMessage($user, $conversation)
+            ? Response::allow()
+            : Response::deny();
     }
 
     /**

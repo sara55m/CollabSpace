@@ -43,6 +43,11 @@ Route::middleware('auth:sanctum')->group(function(){
 
         Route::post('conversations/',[ConversationController::class,'store']);
 
+        Route::patch('conversations/{conversation}',[ConversationController::class,'update']);
+
+        Route::post('conversations/{conversation}/avatar', [ConversationController::class, 'updateAvatar']);
+        Route::delete('conversations/{conversation}/avatar', [ConversationController::class, 'destroyAvatar']);
+
         Route::post('conversations/{conversation}/read', [ConversationController::class, 'markAsRead']);
         //conversation messages
         Route::get('conversations/{conversation}/messages',[MessageController::class,'index']);
