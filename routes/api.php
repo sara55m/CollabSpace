@@ -39,24 +39,26 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::patch('tasks/{task}/progress',[TaskController::class,'updateProgress']);
 
         //conversations
-        Route::get('conversations/',[ConversationController::class,'index']);
+        Route::prefix('conversations')->controller(ConversationController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::patch('{conversation}', 'update');
+            Route::delete('{conversation}', 'destroy');
 
-        Route::post('conversations/',[ConversationController::class,'store']);
+            Route::post('{conversation}/read', 'markAsRead');
+            Route::post('{conversation}/avatar', 'updateAvatar');
+            Route::delete('{conversation}/avatar', 'destroyAvatar');
 
-        Route::patch('conversations/{conversation}',[ConversationController::class,'update']);
+            Route::post('{conversation}/messages', 'sendMessage')->middleware('throttle:60,1');
+        });
 
-        Route::post('conversations/{conversation}/avatar', [ConversationController::class, 'updateAvatar']);
-        Route::delete('conversations/{conversation}/avatar', [ConversationController::class, 'destroyAvatar']);
-
-        Route::post('conversations/{conversation}/read', [ConversationController::class, 'markAsRead']);
         //conversation messages
-        Route::get('conversations/{conversation}/messages',[MessageController::class,'index']);
+        Route::controller(MessageController::class)->group(function () {
+            Route::get('conversations/{conversation}/messages', 'index');
 
-        Route::post('conversations/{conversation}/messages',[ConversationController::class,'sendMessage']);
-
-        Route::patch('messages/{message}',[MessageController::class,'update']);
-
-        Route::delete('messages/{message}',[MessageController::class,'destroy']);
+            Route::patch('messages/{message}', 'update');
+            Route::delete('messages/{message}', 'destroy');
+        });
 
 });
 

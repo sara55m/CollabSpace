@@ -57,9 +57,18 @@ class ConversationPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Conversation $conversation): bool
+    public function delete(User $user, Conversation $conversation): Response
     {
-        return false;
+        //direct chats can not be deleted
+        if ($conversation->type !== ConversationType::Project) {
+            return Response::deny();
+        }
+
+        //allow project owner only to delete project group chats
+        return $conversation->project->owner_id === $user->id
+        ? Response::allow()
+        : Response::deny(__('messages.cannot_delete_conversation'));
+
     }
 
     /**

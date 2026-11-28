@@ -73,9 +73,21 @@ class Conversation extends Model
 
     protected static function booted(): void
     {
+        static::deleting(function (Conversation $c) {
+            //delete attachment records of conversation messages
+            $c->attachments()->delete();
+        });
+
         static::deleted(function (Conversation $c) {
-            DB::afterCommit(function () use ($c) {
-                Storage::deleteDirectory("conversations/{$c->id}");
+            $avatar = $c->getRawOriginal('avatar');
+            DB::afterCommit(function () use ($c,$avatar) {
+                //delete conversation attachments form private disk
+                Storage::disk('local')->deleteDirectory("conversations/{$c->id}");
+                //delete avatars from public disk
+                Storage::disk('public')->deleteDirectory("conversations/{$c->id}");
+                if ($avatar) {
+                    Storage::disk('public')->delete($avatar);
+                }
             });
         });
     }

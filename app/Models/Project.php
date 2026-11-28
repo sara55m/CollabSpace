@@ -105,11 +105,18 @@ class Project extends Model
         }
     }
 
-    public bool $afterCommit = true;
-
     protected static function booted(): void
     {
-        static::deleted(fn (Project $p) => Storage::deleteDirectory("projects/{$p->id}"));
+        static::deleting(function (Project $project) {
+            // each delete() fires Conversation::deleting and ::deleted-->to clean up files
+            $project->conversations()->get()->each->delete();
+        });
+
+        static::deleted(function (Project $p){
+            DB::afterCommit(function () use ($p){
+                Storage::deleteDirectory("projects/{$p->id}");
+            });
+        });
     }
 
     public function scopeVisibleTo(Builder $query,User $user)

@@ -12,6 +12,13 @@ class Message extends Model
 {
     protected $fillable = ['body','user_id'];
 
+    protected function casts()
+    {
+        return [
+            'edited_at'=>'datetime',
+        ];
+    }
+
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(Conversation::class);

@@ -266,4 +266,17 @@ class ConversationController extends Controller
             ->additional(['message' => __('messages.conversation_updated')])
             ->response();
     }
+
+    public function destroy(Conversation $conversation): JsonResponse
+    {
+        Gate::authorize('delete', $conversation);
+
+        DB::transaction(function () use ($conversation) {
+            $conversation->delete();
+        });
+
+        return response()->json([
+            'message' => __('messages.conversation_deleted'),
+        ]);
+    }
 }

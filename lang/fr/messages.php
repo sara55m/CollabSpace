@@ -47,4 +47,7 @@ return [
     'delete_window_expired' => 'Vous ne pouvez supprimer un message que dans les :minutes minutes suivant son envoi.',
     'conversation_updated' => 'Conversation mise à jour avec succès.',
     'public_channel_locked' => 'Le canal public ne peut pas être renommé.',
+    'conversation_deleted' => 'Conversation supprimée avec succès.',
+    'cannot_delete_conversation' => 'Seul le propriétaire du projet peut supprimer ce canal.',
+    'public_channel_cannot_be_deleted' => 'Le canal public ne peut pas être supprimé.',
 ];
